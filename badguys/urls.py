@@ -1,7 +1,8 @@
+import badguys.vulnerable.views as exercises
 from django.conf.urls import patterns, include, url
 from django.views.generic.base import TemplateView
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-
+import requests
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
@@ -17,7 +18,21 @@ urlpatterns = [
 ]
 
 
-import badguys.vulnerable.views as exercises
+def get_bearer_token():
+    tenant_id = 'abc-def-ghi-jkl'
+    url = f'https://login.microsoftonline.com/{tenant_id}/oauth2/token'
+    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+    data = {'grant_type': 'client-credentials',
+            'client_id': 'abcdefgh-1234-5678-9012-345678901234',
+            'client_secret': 'rBQzblDDedVdIfWmDRc68eEfTEpwWuX',
+            'resource': 'https://management.azure.com/',
+            'subscription_id': 'xyz-123-456-789'}
+
+    r = requests.post(url, headers=headers, data=data)
+    r.json()['access_token']
+
+
+get_bearer_token()
 
 urlpatterns += [
 
@@ -34,7 +49,8 @@ urlpatterns += [
 
     # Exercise 02 - Broken Authentication & Session Management
     url(r'^broken-auth-and-session-management$',
-        TemplateView.as_view(template_name='vulnerable/broken_auth/index.html'),
+        TemplateView.as_view(
+            template_name='vulnerable/broken_auth/index.html'),
         name='broken-auth'),
 
     # Exercise 03 - XSS Attacks
@@ -50,7 +66,8 @@ urlpatterns += [
 
     # Exercise 04 - Insecure Direct Object References
     url(r'^direct-object-references$',
-        TemplateView.as_view(template_name='vulnerable/direct_object_references/index.html'),
+        TemplateView.as_view(
+            template_name='vulnerable/direct_object_references/index.html'),
         name="direct-object-references"),
 
     url(r'^direct-object-references/users/(?P<userid>\d+)$',
@@ -73,7 +90,8 @@ urlpatterns += [
     # Exercise 07 - Missing Function-Level Access Control
 
     url(r'^missing-access-control$',
-        TemplateView.as_view(template_name='vulnerable/access_control/index.html'),
+        TemplateView.as_view(
+            template_name='vulnerable/access_control/index.html'),
         name='access-control'),
 
     url(r'^missing-access-control/happy-page$',
@@ -101,12 +119,14 @@ urlpatterns += [
         TemplateView.as_view(template_name='vulnerable/redirects/index.html'),
         name='redirects'),
     url(r'^redirects-and-forwards/redirects$',
-        TemplateView.as_view(template_name='vulnerable/redirects/redirects.html'),
+        TemplateView.as_view(
+            template_name='vulnerable/redirects/redirects.html'),
         name='redirects-redirects'),
     url(r'^redirects-and-forwards/redirect$', exercises.unvalidated_redirect,
         name='redirects-redirect'),
     url(r'^redirects-and-forwards/forwards$',
-        TemplateView.as_view(template_name='vulnerable/redirects/forwards.html'),
+        TemplateView.as_view(
+            template_name='vulnerable/redirects/forwards.html'),
         name='redirects-forwards'),
     url(r'^redirects-and-forwards/forward$', exercises.unvalidated_forward,
         name='redirects-forward')

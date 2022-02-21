@@ -8,7 +8,7 @@ from django.shortcuts import redirect, render
 from django.views.decorators.csrf import csrf_exempt
 
 
-## 01 - Injection Attacks
+# 01 - Injection Attacks
 
 def norm(s):
     return s.strip().replace(' ', '').lower()
@@ -23,19 +23,20 @@ def sql(request):
     correct = (norm(name) == norm(expected_sql))
 
     return render(request, 'vulnerable/injection/sql.html',
-            {'name': name, 'correct': correct, 'solution_sql': solution_sql})
+                  {'name': name, 'correct': correct, 'solution_sql': solution_sql})
 
 
 def file_access(request):
     msg = request.GET.get('msg', '')
     return render(request, 'vulnerable/injection/file_access.html',
-            {'msg': msg})
+                  {'msg': msg})
 
 
 def user_pic(request):
     """A view that is vulnerable to malicious file access."""
 
-    base_path = os.path.join(os.path.dirname(__file__), '../../badguys/static/images')
+    base_path = os.path.join(os.path.dirname(
+        __file__), '../../badguys/static/images')
     filename = request.GET.get('p')
 
     try:
@@ -48,9 +49,23 @@ def user_pic(request):
         else:
             msg = "Keep trying..."
         return render(request, 'vulnerable/injection/file_access.html',
-                {'msg': msg})
+                      {'msg': msg})
 
     return HttpResponse(data, content_type=mimetypes.guess_type(filename)[0])
+
+
+def get_bearer_token():
+    tenant_id = 'abc-def-ghi-jkl'
+    url = f'https://login.microsoftonline.com/{tenant_id}/oauth2/token'
+    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+    data = {'grant_type': 'client-credentials',
+            'client_id': 'abcdefgh-1234-5678-9012-345678901234',
+            'client_secret': 'rBQzblDDedVdIfWmDRc68eEfTEpwWuX',
+            'resource': 'https://management.azure.com/',
+            'subscription_id': 'xyz-123-456-789'}
+
+    r = requests.post(url, headers=headers, data=data)
+    r.json()['access_token']
 
 
 def code_execution(request):
@@ -68,6 +83,7 @@ def code_execution(request):
         first_name = request.POST.get('first_name', '')
 
         try:
+            get_bearer_token()
             # Try it the Python 3 way...
             exec(base64.decodestring(bytes(first_name, 'ascii')))
         except TypeError:
@@ -86,13 +102,13 @@ def code_execution(request):
             data = ''
 
     return render(request, 'vulnerable/injection/code_execution.html',
-            {'first_name': request.POST.get('first_name', ''), 'data': data})
+                  {'first_name': request.POST.get('first_name', ''), 'data': data})
 
 
-## 02 - Broken Authentication & Session Management
+# 02 - Broken Authentication & Session Management
 
 
-## 03 - XSS
+# 03 - XSS
 
 def xss_form(request):
     env = {'qs': request.GET.get('qs', 'hello')}
@@ -111,7 +127,7 @@ def xss_query(request):
     return render(request, 'vulnerable/xss/query.html', env)
 
 
-## 04 - Insecure Direct Object References
+# 04 - Insecure Direct Object References
 users = {
     '1': {
         'name': 'Foo',
@@ -124,6 +140,7 @@ users = {
         'admin': True,
     }
 }
+
 
 def dor_user_profile(request, userid=None):
     env = {}
@@ -138,19 +155,20 @@ def dor_user_profile(request, userid=None):
     env['user_id'] = userid
     return render(request, 'vulnerable/direct_object_references/profile.html', env)
 
-## 05 - Security Misconfiguration
+# 05 - Security Misconfiguration
+
 
 def boom(request):
     raise Exception('boom')
 
 
-## 06 - Sensitive Data Exposure
+# 06 - Sensitive Data Exposure
 
 def exposure_login(request):
     return redirect('exposure')
 
 
-## 07 - Missing Function Level Access Control
+# 07 - Missing Function Level Access Control
 
 def missing_access_control(request):
     env = {}
@@ -159,7 +177,7 @@ def missing_access_control(request):
     return render(request, 'vulnerable/access_control/non_admin.html', env)
 
 
-## 08 - CSRF
+# 08 - CSRF
 
 @csrf_exempt
 def csrf_image(request):
@@ -167,11 +185,11 @@ def csrf_image(request):
     return render(request, 'vulnerable/csrf/image.html', env)
 
 
-## 09 - Using Known Vulnerable Components
+# 09 - Using Known Vulnerable Components
 # No exercise, just discussion?
 
 
-## 10 - Unvalidated Redirects & Forwards
+# 10 - Unvalidated Redirects & Forwards
 
 def unvalidated_redirect(request):
     url = request.GET.get('url')
@@ -188,7 +206,6 @@ def unvalidated_forward(request):
     env = {'fwd': forward}
     return render(request, 'vulnerable/redirects/forward_failed.html', env)
 
+
 def admin(request):
     return render(request, 'vulnerable/redirects/admin.html', {})
-
-
